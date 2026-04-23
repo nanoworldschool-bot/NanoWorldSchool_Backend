@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret123', { expiresIn: '30d' });
 };
 
 export const loginUser = async (req, res) => {

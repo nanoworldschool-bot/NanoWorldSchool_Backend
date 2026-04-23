@@ -1,4 +1,5 @@
 import Enquiry from '../models/Enquiry.js';
+import { sendAdmissionEmails } from '../utils/emailService.js';
 
 export const getEnquiries = async (req, res) => {
   try {
@@ -8,10 +9,15 @@ export const getEnquiries = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const createEnquiry = async (req, res) => {
   try {
     const newEnquiry = new Enquiry(req.body);
     await newEnquiry.save();
+
+    // Trigger Email
+    await sendAdmissionEmails(req.body);
+
     res.status(201).json(newEnquiry);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -40,6 +46,16 @@ export const handleBrochureRequest = async (req, res) => {
       type: 'brochure'
     });
     await newEnquiry.save();
+
+    // Trigger Email
+    await sendAdmissionEmails({
+      name,
+      email,
+      phone,
+      grade: 'N/A',
+      message: `User requested the official ${brochureType}.`
+    });
+
     res.status(201).json({ message: 'Request saved successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

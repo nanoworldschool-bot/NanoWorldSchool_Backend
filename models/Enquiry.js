@@ -5,7 +5,8 @@ const enquirySchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   grade: { type: String },
-
+  subject: { type: String },
+  type: { type: String, default: 'General' },
   message: { type: String },
   status: { type: String, default: 'Pending' },
   createdAt: { type: Date, default: Date.now }

@@ -2,12 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
-import dns from 'dns';
 import mongoose from 'mongoose';
 import os from 'os';
-
-// Use Google DNS for resolving MongoDB SRV records
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
 
 import connectDB from './config/db.js';
 
@@ -20,21 +20,84 @@ import enquiryRoutes from './routes/enquiryRoutes.js';
 import setupRoutes from './routes/setupRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 dotenv.config();
-
-
-
 
 // Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(morgan('dev'));
+// Trust proxy for accurate rate limiting (essential if behind Vercel, Nginx, etc.)
+app.set('trust proxy', 1);
+
+// 1. Optimized CORS Configuration
+const allowedOrigins = [
+  'https://www.nanoworldschool.co.in',
+  'https://api.nanoworldschool.co.in',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS Blocked] Origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// 2. Logging
+app.use(morgan('combined')); // Use 'combined' for more detailed logs
+
+// 3. Hardened Security Headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      connectSrc: ["'self'", "https://api.nanoworldschool.co.in", "https://www.nanoworldschool.co.in"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// 4. Global Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api', limiter);
+
+// 5. Body Parser & Data Sanitization
+app.use(express.json({ limit: '10mb' })); // Standard limit
+// app.use(mongoSanitize());
+// app.use(xss());
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // Increased for dev
+  message: { message: 'Too many attempts, please try again after an hour.' }
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
 
 // Routes
 app.use('/api/contact', contactRoutes);
@@ -224,6 +287,10 @@ app.get('/', (req, res) => {
     </html>
   `);
 });
+
+// Error Middlewares (Must be after all routes)
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
