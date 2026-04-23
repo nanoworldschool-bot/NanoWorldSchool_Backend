@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, default: 'Editor' },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  invitationToken: String,
+  invitationExpire: Date,
   createdAt: { type: Date, default: Date.now }
 });
 

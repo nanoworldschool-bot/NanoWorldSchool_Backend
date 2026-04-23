@@ -134,7 +134,7 @@ export const forgotPasswordTemplate = (name, resetLink) => `
 `;
 
 // 4. TEMPLATE FOR STAFF INVITATION
-export const invitationTemplate = (email, tempPassword, setupLink) => `
+export const invitationTemplate = (email, unusedParam, setupLink) => `
   <div style="${baseStyles}">
     <div style="${headerStyles}">
       <h1 style="margin: 0; color: ${goldColor}; font-size: 24px;">Welcome to Nano World School</h1>
@@ -143,19 +143,18 @@ export const invitationTemplate = (email, tempPassword, setupLink) => `
     <div style="${contentStyles}">
       <p>Hello,</p>
       <p>You have been invited to join the <strong>Nano World School Administrative Portal</strong>.</p>
-      <p>Your account has been created with the following credentials:</p>
+      <p>To get started, please click the button below to set up your full name and choose a secure password for your account.</p>
       
       <div style="margin: 25px 0; padding: 20px; background-color: ${lightBg}; border-radius: 8px; border-left: 4px solid ${goldColor};">
-        <p style="margin: 0;"><strong>Email:</strong> ${email}</p>
-        <p style="margin: 10px 0 0;"><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code></p>
+        <p style="margin: 0;"><strong>Invited Email:</strong> ${email}</p>
+        <p style="margin: 10px 0 0;">This invitation link will expire in 48 hours for security reasons.</p>
       </div>
 
-      <p>Please log in and change your password immediately to secure your account.</p>
-      
       <div style="margin: 35px 0; text-align: center;">
-        <a href="${setupLink}" style="display: inline-block; padding: 14px 28px; background-color: ${primaryColor}; color: ${whiteColor}; text-decoration: none; border-radius: 6px; font-weight: bold;">Login to Admin Portal</a>
+        <a href="${setupLink}" style="display: inline-block; padding: 14px 28px; background-color: ${goldColor}; color: ${primaryColor}; text-decoration: none; border-radius: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Complete Account Setup</a>
       </div>
 
+      <p>If you were not expecting this invitation, please contact your school administrator.</p>
       <p>Best Regards,<br><strong>System Administrator</strong><br>Nano World School</p>
     </div>
     <div style="${footerStyles}">
