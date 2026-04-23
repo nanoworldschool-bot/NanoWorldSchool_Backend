@@ -50,6 +50,10 @@ const PORT = process.env.PORT || 5000;
 
 
 
-app.listen(PORT, () => {
-  console.log(`Backend Server running in MVC mode on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Backend Server running in MVC mode on port ${PORT}`);
+  });
+}
+
+export default app;
