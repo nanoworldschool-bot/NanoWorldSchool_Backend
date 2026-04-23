@@ -19,6 +19,7 @@ import contentRoutes from './routes/contentRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import setupRoutes from './routes/setupRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import dns from 'dns';
@@ -108,6 +109,7 @@ app.use('/api/content', contentRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/setup', setupRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/auth', authRoutes);
 
 // Root route for Server Status

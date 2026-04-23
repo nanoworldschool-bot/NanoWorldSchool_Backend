@@ -15,6 +15,7 @@ const settingsSchema = new mongoose.Schema({
   instagramUrl: { type: String },
   twitterUrl: { type: String },
   youtubeUrl: { type: String },
+  linkedinUrl: { type: String },
   updatedAt: { type: Date, default: Date.now }
 });
 
