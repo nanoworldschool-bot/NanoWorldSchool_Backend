@@ -112,6 +112,19 @@ app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/auth', authRoutes);
 
+app.get('/api/status', (req, res) => {
+  res.json({
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    node: process.version,
+    platform: process.platform,
+    env: process.env.NODE_ENV || 'development',
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Connecting/Disconnected',
+    timestamp: new Date().toLocaleTimeString(),
+    cpu: os.loadavg(),
+  });
+});
+
 // Root route for Server Status
 app.get('/', (req, res) => {
   const status = {
@@ -252,7 +265,7 @@ app.get('/', (req, res) => {
     <body>
       <div class="bg-glow"></div>
       <div class="container">
-        <h1><span class="indicator"></span> Backend Operational</h1>
+        <h1><span class="indicator" id="val-indicator"></span> Backend Operational</h1>
         <div class="stats">
           <div class="stat-row">
             <span class="label">Status</span>
@@ -260,31 +273,61 @@ app.get('/', (req, res) => {
           </div>
           <div class="stat-row">
             <span class="label">Uptime</span>
-            <span class="value">${formatUptime(status.uptime)}</span>
+            <span class="value" id="val-uptime">${formatUptime(status.uptime)}</span>
           </div>
           <div class="stat-row">
             <span class="label">Memory Usage</span>
-            <span class="value">${(status.memory.rss / 1024 / 1024).toFixed(1)} MB</span>
+            <span class="value" id="val-memory">${(status.memory.rss / 1024 / 1024).toFixed(1)} MB</span>
           </div>
           <div class="stat-row">
             <span class="label">Node Engine</span>
-            <span class="value">${status.node}</span>
+            <span class="value" id="val-node">${status.node}</span>
           </div>
           <div class="stat-row">
             <span class="label">Environment</span>
-            <span class="value" style="text-transform: capitalize;">${status.env}</span>
+            <span class="value" id="val-env" style="text-transform: capitalize;">${status.env}</span>
           </div>
           <div class="stat-row">
             <span class="label">Database</span>
-            <span class="value" style="color: ${status.database === 'Connected' ? 'var(--success)' : 'var(--warning)'};">
+            <span class="value" id="val-database" style="color: ${status.database === 'Connected' ? 'var(--success)' : 'var(--warning)'};">
               ${status.database}
             </span>
           </div>
         </div>
-        <div class="footer">
+        <div class="footer" id="val-time">
           Last Check: ${new Date().toLocaleTimeString()}
         </div>
       </div>
+      <script>
+        function formatUptimeJS(seconds) {
+          const d = Math.floor(seconds / (3600 * 24));
+          const h = Math.floor((seconds % (3600 * 24)) / 3600);
+          const m = Math.floor((seconds % 3600) / 60);
+          const s = Math.floor(seconds % 60);
+          return (d > 0 ? d + 'd ' : '') + (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'm ' : '') + s + 's';
+        }
+
+        setInterval(() => {
+          fetch('/api/status')
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById('val-uptime').innerText = formatUptimeJS(data.uptime);
+              document.getElementById('val-memory').innerText = (data.memory.rss / 1024 / 1024).toFixed(1) + ' MB';
+              document.getElementById('val-node').innerText = data.node;
+              document.getElementById('val-env').innerText = data.env;
+              const dbEl = document.getElementById('val-database');
+              dbEl.innerText = data.database;
+              dbEl.style.color = data.database === 'Connected' ? 'var(--success)' : 'var(--warning)';
+              
+              const indEl = document.getElementById('val-indicator');
+              indEl.style.background = data.database === 'Connected' ? 'var(--success)' : 'var(--warning)';
+              indEl.style.boxShadow = '0 0 15px ' + (data.database === 'Connected' ? 'var(--success)' : 'var(--warning)');
+              
+              document.getElementById('val-time').innerText = 'Last Check: ' + data.timestamp;
+            })
+            .catch(err => console.error('Status fetch error:', err));
+        }, 1000);
+      </script>
     </body>
     </html>
   `);
