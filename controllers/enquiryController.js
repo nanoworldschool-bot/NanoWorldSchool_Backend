@@ -16,7 +16,11 @@ export const createEnquiry = async (req, res) => {
     await newEnquiry.save();
 
     // Trigger Email
-    await sendAdmissionEmails(req.body);
+    try {
+      await sendAdmissionEmails(req.body);
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError.message);
+    }
 
     res.status(201).json(newEnquiry);
   } catch (error) {
@@ -48,13 +52,17 @@ export const handleBrochureRequest = async (req, res) => {
     await newEnquiry.save();
 
     // Trigger Email
-    await sendAdmissionEmails({
-      name,
-      email,
-      phone,
-      grade: 'N/A',
-      message: `User requested the official ${brochureType}.`
-    });
+    try {
+      await sendAdmissionEmails({
+        name,
+        email,
+        phone,
+        grade: 'N/A',
+        message: `User requested the official ${brochureType}.`
+      });
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError.message);
+    }
 
     res.status(201).json({ message: 'Request saved successfully' });
   } catch (error) {

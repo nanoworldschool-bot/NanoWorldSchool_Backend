@@ -61,7 +61,7 @@ export const adminEnquiryTemplate = (data) => `
         </tr>
         <tr>
           <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-weight: bold;">Grade:</td>
-          <td style="padding: 10px 0; border-bottom: 1px solid #eee; color: ${goldColor}; font-weight: bold;">${data.grade.toUpperCase()}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; color: ${goldColor}; font-weight: bold;">${(data.grade || 'N/A').toUpperCase()}</td>
         </tr>
       </table>
       <div style="margin-top: 30px;">
